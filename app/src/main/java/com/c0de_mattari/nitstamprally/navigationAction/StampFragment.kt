@@ -184,12 +184,34 @@ class StampFragment : Fragment() {
             thread.start()
 
             (activity as MainActivity).rangeBeacon {
-                Log.d("DEBAG", "Rangebeacon called from stampfragment")
+                Log.d("DEBUG", "Rangebeacon called from stampfragment")
                 if (mProgressDialog.brk) {
-                    mApiController.requestImage(activity, uuid, quizNumber, it as MutableList<MyBeaconData>, requestImagesFunc(quizNumber))
+                    // ビーコン値などをサーバに送信して位置判定
+                    // チェックポイント内と判定されれば問題画面に以降
+                    // サーバ停止中につき固定値を使用
+                    val isSend = true
+                    val imageUrl = ""
+                    data[quizNumber - 1] = ImageData(quizNumber, isSend, imageUrl)
+                    buttonResult[quizNumber] = 1
+
+                    mFragmentListner.take1(quizNumber)
+                    mFragmentListner.saveURL(quizNumber, imageUrl)
+
+                    texts[quizNumber]!!.text = "\n\n問題取得済み"
+                    isGot[quizNumber] = true
+
+                    AlertUtil.showYesNoDialog(
+                            activity as Activity,
+                            "判定結果",
+                            getString(R.string.dialog_in_area),
+                            true
+                    ) {
+                        mFragmentListner.goActivity(quizNumber, isSend, imageUrl)
+                    }
+//                    mApiController.requestImage(activity, uuid, quizNumber, it as MutableList<MyBeaconData>, requestImagesFunc(quizNumber))
                 }
             }
-            Log.d("DEBAG", "end")
+            Log.d("DEBUG", "end")
         }
 
         if (buttonResult[quizNumber] == 1) {
@@ -202,29 +224,34 @@ class StampFragment : Fragment() {
         Log.d("buttonResult", buttonResult[quizNumber].toString())
         if (!goalApiIsCalled) {
             if (buttonResult[quizNumber] == 3) {
-                AlertUtil.showYesNoDialog(activity as Activity,"ゲームクリア","ゲームを終了しますか?",true){
+                AlertUtil.showYesNoDialog(activity as Activity, "ゲームクリア", "ゲームを終了しますか?", true) {
 
-                            val mApiController = ApiController()
-                            mApiController.requestGoal(uuid) { response ->
-                                when (response.code()) {
-                                    200 -> {
+                    // クリア済みであることをサーバに送信
+                    // サーバ停止中につき固定値を使用
+                    mFragmentListner.takeGoal()
+                    AlertUtil.showNotifyDialog(activity as Activity, "クリア済", "$userName さん、クリアおめでとうございます！景品受取所(5233教室)まで景品(数に限りがございます)を受け取りにお越しください！")
 
-                                        response.body()?.let {
-                                            mFragmentListner!!.takeGoal()
-                                            Log.d("", goalApiIsCalled.toString())
+//                    val mApiController = ApiController()
+//                    mApiController.requestGoal(uuid) { response ->
+//                        when (response.code()) {
+//                            200 -> {
+//
+//                                response.body()?.let {
+//                                    mFragmentListner!!.takeGoal()
+//                                    Log.d("", goalApiIsCalled.toString())
+//
+//                                    AlertUtil.showNotifyDialog(activity as Activity, "クリア済", "$userName さん、クリアおめでとうございます！景品受取所(5233教室)まで景品(数に限りがございます)を受け取りにお越しください！")
+//                                }
+//                            }
+//
+//                            else -> Log.d("goaldesu", response.code().toString())
+//                        }
+//                    }
 
-                                            AlertUtil.showNotifyDialog(activity as Activity,"クリア済","$userName さん、クリアおめでとうございます！景品受取所(5233教室)まで景品(数に限りがございます)を受け取りにお越しください！")
-                                        }
-                                    }
-
-                                    else -> Log.d("goaldesu", response.code().toString())
-                                }
-                            }
-
-                        }
+                }
             }
         } else {
-            AlertUtil.showNotifyDialog(activity as Activity,"クリア済","$userName さん、クリアおめでとうございます！景品受取所(5233教室)まで景品(数に限りがございます)を受け取りにお越しください！")
+            AlertUtil.showNotifyDialog(activity as Activity, "クリア済", "$userName さん、クリアおめでとうございます！景品受取所(5233教室)まで景品(数に限りがございます)を受け取りにお越しください！")
         }
     }
 
@@ -233,6 +260,7 @@ class StampFragment : Fragment() {
     //Controller関係
     val mApiController = ApiController()
     lateinit var mBeaconController: BeaconController
+
     //関数型オブジェクトを返す高階関数(?)です。受け取ったquizCodeの値に応じて、関数型オブジェクトを返します。
     //imageRequest時に実行
     val requestImagesFunc = fun(quizCode: Int): (Response<ImageResponse>) -> Unit {
@@ -242,8 +270,7 @@ class StampFragment : Fragment() {
                 200 -> {
                     val buttonResult: IntArray = arguments!!.getIntArray("buttonResult")
                     //TODO:iOSに合わせて文面をを差し替え
-                    when(response.body()!!.messageId.toInt())
-                    {
+                    when (response.body()!!.messageId.toInt()) {
                         0 -> {//範囲外
                             AlertUtil.showNotifyDialog(
                                     activity as Activity,
@@ -251,14 +278,14 @@ class StampFragment : Fragment() {
                                     getString(R.string.dialog_out_of_area)
                             )
                         }
-                        1 ->{//範囲付近
+                        1 -> {//範囲付近
                             AlertUtil.showNotifyDialog(
                                     activity as Activity,
                                     "取得結果",
                                     getString(R.string.dialog_near_area)
                             )
                         }
-                        2->{
+                        2 -> {
                             //範囲内
                             response.body()?.let {
                                 data[quizCode - 1] = ImageData(it.quizCode, it.isSend, it.imageURL)
@@ -281,7 +308,7 @@ class StampFragment : Fragment() {
                                 }
                             }
                         }
-                        3->{
+                        3 -> {
                             //クリア済
                             //未定義
                         }

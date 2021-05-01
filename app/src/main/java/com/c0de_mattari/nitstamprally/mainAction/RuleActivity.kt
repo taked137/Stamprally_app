@@ -13,16 +13,20 @@ class RuleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rule)
 
-        val mApiController = ApiController()
-        mApiController.getRegulation(this, agree_contents, rule_title) { response ->
-            when (response.code()) {
-                200 -> {
-                    response.body()?.let {
-                        rule_contents.text = it.ruleText
-                    }
-                }
-            }
-        }
+        // 利用規約をサーバから受信
+        // サーバ停止中につき固定値を使用
+        rule_contents.text = "本来は利用規約が表示されます\n(現在はサーバ停止中)"
+
+//        val mApiController = ApiController()
+//        mApiController.getRegulation(this, agree_contents, rule_title) { response ->
+//            when (response.code()) {
+//                200 -> {
+//                    response.body()?.let {
+//                        rule_contents.text = it.ruleText
+//                    }
+//                }
+//            }
+//        }
 
         agree_contents.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)

@@ -54,24 +54,30 @@ class SecondActivity : AppCompatActivity() {
              * 1:"AD34E" 2:"DEACG" 3:"FSXJW" 4:"VX8LK" 5:"X1QPY" 6:"HIQ3A"
              */
 
-            mApiController.judgeAnswer(this, uuid, quizCode, answer_word.editableText.toString()) { response ->
-                when (response.code()) {
-                    200 -> {
-                        response.body()?.let {
-                            answerResult = it.isCorrect
-                            judgement(answerResult, quizCode, response.code(), "")
-                        }
-                    }
-                    401 -> {
-                        response.body()?.let {
-                            judgement(answerResult, quizCode, 401, "")
-                        }
-                    }
-                    else -> {
-                        judgement(answerResult, quizCode, response.code(), "")
-                    }
-                }
-            }
+            // 回答をサーバに送信して正誤判定
+            // 正解していればスタンプが押される
+            // サーバ停止中につき固定値を使用
+            answerResult = true
+            judgement(answerResult, quizCode, 200, "")
+
+//            mApiController.judgeAnswer(this, uuid, quizCode, answer_word.editableText.toString()) { response ->
+//                when (response.code()) {
+//                    200 -> {
+//                        response.body()?.let {
+//                            answerResult = it.isCorrect
+//                            judgement(answerResult, quizCode, response.code(), "")
+//                        }
+//                    }
+//                    401 -> {
+//                        response.body()?.let {
+//                            judgement(answerResult, quizCode, 401, "")
+//                        }
+//                    }
+//                    else -> {
+//                        judgement(answerResult, quizCode, response.code(), "")
+//                    }
+//                }
+//            }
         }
 
         back_button.setOnClickListener {
@@ -92,72 +98,23 @@ class SecondActivity : AppCompatActivity() {
                     setResult(RESULT_OK, intent)
                     finish()
                 }
-                /*
-                AlertDialog.Builder(this)
-                        .setTitle("正解!")
-                        .setMessage("スタンプを押します")
-                        .setPositiveButton("OK") { _, _ ->
-                            val intent = Intent(this, MainActivity::class.java)
-                            intent.putExtra("isCorrect", answerResult)
-                            intent.putExtra("answerNumber", quizCode)
-                            setResult(RESULT_OK, intent)
-                            finish()
-                        }
-                        .show()
-                        */
             } else {
                 AlertUtil.showNotifyDialog(this,"不正解","もう一度考えてみて下さい")
-                /*
-                AlertDialog.Builder(this)
-                        .setTitle("不正解")
-                        .setMessage("もう一度考えてみてください")
-                        .setPositiveButton("OK") { _, _ ->
-                        }.show()
-                        */
             }
         } else {
             when (responseCode) {
                 400 -> {
                     AlertUtil.showNotifyDialog(this,"エラー","解答を入力し直して下さい")
-                    /*
-                    AlertDialog.Builder(this)
-                            .setTitle("エラー")
-                            .setMessage("解答を入力し直してください")
-                            .setPositiveButton("OK") { _, _ ->
-                            }.show()
-                            */
                 }
                 401 -> {
                     if (msg == "Not Send UUID") {
                         AlertUtil.showNotifyDialog(this,"通信エラー","もう一度やり直して下さい")
-
-                        /*
-                        AlertDialog.Builder(this)
-                                .setTitle("通信エラー")
-                                .setMessage("もう一度やり直してください")
-                                .setPositiveButton("OK") { _, _ ->
-                                }.show()
-                                */
                     } else if (msg == "User not found") {
                         AlertUtil.showNotifyDialog(this,"エラー","このエラーが出続けるよう場合、お手数ですがサービスセンターにお越しください")
-                        /*
-                        AlertDialog.Builder(this)
-                                .setTitle("エラー")
-                                .setMessage("このエラーが出続けるよう場合、お手数ですがサービスセンターにお越しください")
-                                .setPositiveButton("OK") { _, _ ->
-                                }.show()
-                                */
                     }
                 }
                 500 -> {
                     AlertUtil.showNotifyDialog(this,"エラー","解答を入力し直して下さい")
-                    /*
-                    AlertDialog.Builder(this)
-                            .setTitle("エラー")
-                            .setMessage("解答を入力し直してください")
-                            .setPositiveButton("OK") { _, _ ->
-                            }.show()
-                */
                 }
             }
         }

@@ -27,43 +27,60 @@ class RegisterActivity : AppCompatActivity() {
         //ユーザー名の登録とUUIDの作成、またその保存
         send_name.setOnClickListener {
             val userName: String = userName.editableText.toString()
-            AlertUtil.showYesNoDialog(this,"確認","${userName}で登録します",true) {
+            AlertUtil.showYesNoDialog(this, "確認", "${userName}で登録します", true) {
                 //ここにprogressBar
 
                 val mApiController = ApiController()
 
                 var stringUUID = ""
 
-                mApiController.registerUser(this, userName, Build.DEVICE, Build.VERSION.RELEASE) { response ->
-                    when (response.code()) {
-                        200 -> {
-                            AlertUtil.showNotifyDialog(this, "登録完了", callback = {
-                                response.body()?.let {
-                                    stringUUID = it.uuid
+                // ユーザ登録
+                // ユーザ名をサーバに送信，既存プレイヤーとの重複が無いようにする
+                // ユーザ登録に成功したらサーバからuuidが送信される
+                // サーバ停止中につき固定値を使用
+                AlertUtil.showNotifyDialog(this, "登録完了", callback = {
+                    stringUUID = "hoge"
 
-                                }
+                    val prefer: SharedPreferences = getSharedPreferences("prefer", Context.MODE_PRIVATE)
+                    val editor: SharedPreferences.Editor = prefer.edit()
+                    editor.putString("UUID", stringUUID)
+                    editor.putString("USERNAME", userName)
+                    editor.apply()
+                    val intent = Intent(this, MainActivity::class.java)
 
-                                val prefer: SharedPreferences = getSharedPreferences("prefer", Context.MODE_PRIVATE)
-                                val editor: SharedPreferences.Editor = prefer.edit()
-                                editor.putString("UUID", stringUUID)
-                                editor.putString("USERNAME", userName)
-                                editor.apply()
-                                val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                })
 
-                                startActivity(intent)
-                            })
-                        }
-                        400 -> {
-                            AlertUtil.showNotifyDialog(this,"エラー","4文字以上で入力してください")
-                        }
-                        409 -> {
-                            AlertUtil.showNotifyDialog(this,"エラー","その名前は利用できません")
-                        }
-                        500 -> {
-                            AlertUtil.showNotifyDialog(this,"通信エラー","もう一度やり直して下さい")
-                        }
-                    }
-                }
+//                mApiController.registerUser(this, userName, Build.DEVICE, Build.VERSION.RELEASE) { response ->
+//                    when (response.code()) {
+//                        200 -> {
+//                            AlertUtil.showNotifyDialog(this, "登録完了", callback = {
+//                                response.body()?.let {
+//                                    stringUUID = it.uuid
+//
+//                                }
+//
+//                                val prefer: SharedPreferences = getSharedPreferences("prefer", Context.MODE_PRIVATE)
+//                                val editor: SharedPreferences.Editor = prefer.edit()
+//                                editor.putString("UUID", stringUUID)
+//                                editor.putString("USERNAME", userName)
+//                                editor.apply()
+//                                val intent = Intent(this, MainActivity::class.java)
+//
+//                                startActivity(intent)
+//                            })
+//                        }
+//                        400 -> {
+//                            AlertUtil.showNotifyDialog(this,"エラー","4文字以上で入力してください")
+//                        }
+//                        409 -> {
+//                            AlertUtil.showNotifyDialog(this,"エラー","その名前は利用できません")
+//                        }
+//                        500 -> {
+//                            AlertUtil.showNotifyDialog(this,"通信エラー","もう一度やり直して下さい")
+//                        }
+//                    }
+//                }
             }
 
         }

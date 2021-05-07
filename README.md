@@ -28,4 +28,4 @@
 8. 4.以降を繰り返す
 
 ## スクリーンショット
-![top](screenshots/Screenshot_20210503_092330_com.c0de_mattari.nitstamprally.jpg)
+![screenshots.png](./screenshots/screenshots.png)
